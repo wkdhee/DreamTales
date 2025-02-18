@@ -1,6 +1,10 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+if (!canvas || !ctx) {
+    console.error("Canvas 또는 ctx를 찾을 수 없습니다!");
+}
+
 // 공 설정
 let ballRadius = 10;
 let x = canvas.width / 2;
@@ -133,4 +137,11 @@ function draw() {
     // 패들 이동
     if (rightPressed && paddleX < canvas.width - paddleWidth) {
         paddleX += 5;
-    } else if (
+    } else if (leftPressed && paddleX > 0) {
+        paddleX -= 5;
+    }
+
+    requestAnimationFrame(draw);
+}
+
+draw();
