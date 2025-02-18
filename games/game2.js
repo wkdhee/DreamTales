@@ -1,3 +1,10 @@
+document.addEventListener("DOMContentLoaded", function () {
+    const startButton = document.getElementById("startButton");
+    if (startButton) {
+        startButton.addEventListener("click", startGame);
+    }
+});
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -40,7 +47,7 @@ for (let c = 0; c < brickColumnCount; c++) {
     }
 }
 
-// 키보드 입력 처리 (←, → 방향키만 작동하게 설정)
+// 키보드 입력 처리 (←, → 방향키만 작동)
 let rightPressed = false;
 let leftPressed = false;
 
@@ -48,7 +55,7 @@ document.addEventListener("keydown", function (e) {
     if (e.key === "ArrowRight") rightPressed = true;
     if (e.key === "ArrowLeft") leftPressed = true;
 
-    // 🛑 스페이스바 눌렀을 때 기본 동작 방지 (공이 빨라지는 문제 해결)
+    // 🛑 스페이스바 문제 해결: 기본 동작 방지
     if (e.key === " ") {
         e.preventDefault();
     }
@@ -61,7 +68,10 @@ document.addEventListener("keyup", function (e) {
 
 // 게임 시작 함수
 function startGame() {
-    document.getElementById("startButton").disabled = true; // 버튼 비활성화
+    const startButton = document.getElementById("startButton");
+    if (startButton) {
+        startButton.disabled = true; // 버튼 비활성화
+    }
     gameRunning = true;
     resetGame();
     gameLoop();
@@ -126,7 +136,7 @@ function gameLoop() {
     if (!gameRunning) return;
 
     movePaddle();
-    
+
     ball.x += ball.dx;
     ball.y += ball.dy;
 
@@ -157,7 +167,10 @@ function gameLoop() {
 function gameOver() {
     gameRunning = false;
     alert(`💥 게임 오버!`);
-    document.getElementById("startButton").disabled = false; // 게임 시작 버튼 다시 활성화
+    const startButton = document.getElementById("startButton");
+    if (startButton) {
+        startButton.disabled = false; // 게임 시작 버튼 다시 활성화
+    }
 }
 
 // 게임 초기화
