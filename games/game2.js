@@ -43,11 +43,11 @@ let bricks = [];
 for (let c = 0; c < brickColumnCount; c++) {
     bricks[c] = [];
     for (let r = 0; r < brickRowCount; r++) {
-        bricks[c][r] = { x: 0, y: 0, status: 1 };
+        bricks[c][r] = { x: 0, y: 0, status: 1 }; // 🔥 벽돌 상태 추가 (1: 존재, 0: 깨짐)
     }
 }
 
-// 키보드 입력 처리 (←, → 방향키만 작동)
+// 키보드 입력 처리
 let rightPressed = false;
 let leftPressed = false;
 
@@ -55,9 +55,8 @@ document.addEventListener("keydown", function (e) {
     if (e.key === "ArrowRight") rightPressed = true;
     if (e.key === "ArrowLeft") leftPressed = true;
 
-    // 🛑 스페이스바 문제 해결: 기본 동작 방지
     if (e.key === " ") {
-        e.preventDefault();
+        e.preventDefault(); // 🔥 스페이스바 문제 해결
     }
 });
 
@@ -91,7 +90,7 @@ function movePaddle() {
 function drawBricks() {
     for (let c = 0; c < brickColumnCount; c++) {
         for (let r = 0; r < brickRowCount; r++) {
-            if (bricks[c][r].status === 1) {
+            if (bricks[c][r].status === 1) { // 🔥 벽돌이 남아있는 경우만 그리기
                 let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
                 let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
                 bricks[c][r].x = brickX;
@@ -118,6 +117,27 @@ function drawPaddle() {
     ctx.fillRect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height);
 }
 
+// 벽돌 충돌 감지 🔥
+function checkBrickCollision() {
+    for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+            let brick = bricks[c][r];
+            if (brick.status === 1) {
+                if (
+                    ball.x > brick.x &&
+                    ball.x < brick.x + brickWidth &&
+                    ball.y > brick.y &&
+                    ball.y < brick.y + brickHeight
+                ) {
+                    ball.dy *= -1; // 공의 방향 변경
+                    brick.status = 0; // 벽돌 제거
+                    score += 10; // 점수 증가
+                }
+            }
+        }
+    }
+}
+
 // 게임 화면을 그리는 함수
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -136,6 +156,7 @@ function gameLoop() {
     if (!gameRunning) return;
 
     movePaddle();
+    checkBrickCollision();
 
     ball.x += ball.dx;
     ball.y += ball.dy;
@@ -166,7 +187,7 @@ function gameLoop() {
 // 게임 오버
 function gameOver() {
     gameRunning = false;
-    alert(`💥 게임 오버!`);
+    alert(`💥 게임 오버! 점수: ${score}`);
     const startButton = document.getElementById("startButton");
     if (startButton) {
         startButton.disabled = false; // 게임 시작 버튼 다시 활성화
@@ -180,6 +201,13 @@ function resetGame() {
     ball.dx = 3;
     ball.dy = -3;
     paddle.x = (canvas.width - paddle.width) / 2;
+    
+    // 벽돌 다시 생성 🔥
+    for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+            bricks[c][r].status = 1;
+        }
+    }
 }
 
 // 점수 저장 기능
