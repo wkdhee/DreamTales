@@ -144,4 +144,5 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
+// 🔥 여기가 빠지면 안 됨! (게임 실행 시작)
 draw();
