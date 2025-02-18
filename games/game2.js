@@ -1,19 +1,26 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// 게임 상태 변수
+let gameRunning = false;
+
 // 공 설정
-let ballRadius = 10;
-let x = canvas.width / 2;
-let y = canvas.height - 30;
-let dx = 2;
-let dy = -2;
+let ball = {
+    x: canvas.width / 2,
+    y: canvas.height - 30,
+    dx: 3,
+    dy: -3,
+    radius: 10,
+    color: "red"
+};
 
 // 패들 설정
-let paddleHeight = 10;
-let paddleWidth = 75;
-let paddleX = (canvas.width - paddleWidth) / 2;
-let rightPressed = false;
-let leftPressed = false;
+let paddle = {
+    width: 75,
+    height: 10,
+    x: (canvas.width - 75) / 2,
+    speed: 5
+};
 
 // 벽돌 설정
 let brickRowCount = 3;
@@ -32,42 +39,24 @@ for (let c = 0; c < brickColumnCount; c++) {
     }
 }
 
-// 키보드 이벤트 리스너 추가
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
+// 키보드 입력 처리
+let rightPressed = false;
+let leftPressed = false;
 
-function keyDownHandler(e) {
-    if (e.key === "Right" || e.key === "ArrowRight") {
-        rightPressed = true;
-    } else if (e.key === "Left" || e.key === "ArrowLeft") {
-        leftPressed = true;
-    }
-}
+document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight") rightPressed = true;
+    if (e.key === "ArrowLeft") leftPressed = true;
+});
+document.addEventListener("keyup", function (e) {
+    if (e.key === "ArrowRight") rightPressed = false;
+    if (e.key === "ArrowLeft") leftPressed = false;
+});
 
-function keyUpHandler(e) {
-    if (e.key === "Right" || e.key === "ArrowRight") {
-        rightPressed = false;
-    } else if (e.key === "Left" || e.key === "ArrowLeft") {
-        leftPressed = false;
-    }
-}
-
-// 공 그리기
-function drawBall() {
-    ctx.beginPath();
-    ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-    ctx.fillStyle = "red";
-    ctx.fill();
-    ctx.closePath();
-}
-
-// 패들 그리기
-function drawPaddle() {
-    ctx.beginPath();
-    ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
-    ctx.fillStyle = "blue";
-    ctx.fill();
-    ctx.closePath();
+// 게임 시작 함수
+function startGame() {
+    gameRunning = true;
+    resetGame();
+    gameLoop();
 }
 
 // 벽돌 그리기
@@ -79,66 +68,105 @@ function drawBricks() {
                 let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
                 bricks[c][r].x = brickX;
                 bricks[c][r].y = brickY;
-                ctx.beginPath();
-                ctx.rect(brickX, brickY, brickWidth, brickHeight);
                 ctx.fillStyle = "green";
-                ctx.fill();
-                ctx.closePath();
+                ctx.fillRect(brickX, brickY, brickWidth, brickHeight);
             }
         }
     }
 }
 
-// 충돌 감지
-function collisionDetection() {
-    for (let c = 0; c < brickColumnCount; c++) {
-        for (let r = 0; r < brickRowCount; r++) {
-            let b = bricks[c][r];
-            if (b.status === 1) {
-                if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
-                    dy = -dy;
-                    b.status = 0;
-                }
-            }
-        }
-    }
+// 공 그리기
+function drawBall() {
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = ball.color;
+    ctx.fill();
+    ctx.closePath();
 }
 
-// 게임 화면 업데이트
-function draw() {
+// 패들 그리기
+function drawPaddle() {
+    ctx.fillStyle = "blue";
+    ctx.fillRect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height);
+}
+
+// 게임 루프
+function gameLoop() {
+    if (!gameRunning) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBricks();
     drawBall();
     drawPaddle();
-    collisionDetection();
-
-    // 벽 충돌
-    if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
-        dx = -dx;
-    }
-    if (y + dy < ballRadius) {
-        dy = -dy;
-    } else if (y + dy > canvas.height - ballRadius) {
-        if (x > paddleX && x < paddleX + paddleWidth) {
-            dy = -dy;
-        } else {
-            document.location.reload(); // 게임 오버
-        }
-    }
 
     // 공 이동
-    x += dx;
-    y += dy;
+    ball.x += ball.dx;
+    ball.y += ball.dy;
 
-    // 패들 이동 (키보드 조작)
-    if (rightPressed && paddleX < canvas.width - paddleWidth) {
-        paddleX += 5;
-    } else if (leftPressed && paddleX > 0) {
-        paddleX -= 5;
+    // 벽 충돌
+    if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+        ball.dx *= -1;
+    }
+    if (ball.y - ball.radius < 0) {
+        ball.dy *= -1;
+    } else if (ball.y + ball.radius > canvas.height) {
+        gameOver();
     }
 
-    requestAnimationFrame(draw);
+    // 패들 충돌
+    if (
+        ball.y + ball.radius > canvas.height - paddle.height &&
+        ball.x > paddle.x &&
+        ball.x < paddle.x + paddle.width
+    ) {
+        ball.dy *= -1;
+    }
+
+    requestAnimationFrame(gameLoop);
 }
 
-// 게임 시작!
-draw();
+// 게임 오버
+function gameOver() {
+    gameRunning = false;
+    alert(`💥 게임 오버!`);
+}
+
+// 게임 초기화
+function resetGame() {
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height - 30;
+    ball.dx = 3;
+    ball.dy = -3;
+    paddle.x = (canvas.width - paddle.width) / 2;
+}
+
+// 점수 저장 기능
+function saveScore() {
+    let playerName = document.getElementById("playerName").value;
+    if (playerName === "") {
+        alert("이름을 입력하세요!");
+        return;
+    }
+
+    let newScore = { name: playerName, score: 0 };
+    let scores = JSON.parse(localStorage.getItem("brick_scores")) || [];
+    scores.push(newScore);
+    scores.sort((a, b) => b.score - a.score);
+    localStorage.setItem("brick_scores", JSON.stringify(scores));
+
+    updateScoreBoard();
+}
+
+// 기록된 점수 리스트 업데이트
+function updateScoreBoard() {
+    let scoreList = document.getElementById("scoreList");
+    scoreList.innerHTML = "";
+    let scores = JSON.parse(localStorage.getItem("brick_scores")) || [];
+
+    scores.forEach((entry) => {
+        let li = document.createElement("li");
+        li.textContent = `${entry.name}: ${entry.score}점`;
+        scoreList.appendChild(li);
+    });
+}
+
+updateScoreBoard();

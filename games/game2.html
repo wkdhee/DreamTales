@@ -5,16 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>벽돌 깨기 게임</title>
     <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            margin: 10px;
+        }
+        #gameContainer {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+        }
         canvas {
-            background: #eee;
-            display: block;
-            margin: auto;
+            background: #f4f4f4;
+            border: 2px solid black;
+        }
+        #scoreBoard {
+            width: 200px;
+            text-align: left;
+            padding: 10px;
+            border: 2px solid black;
+            background: #fff;
+        }
+        input, button {
+            width: 100%;
+            margin-top: 5px;
+            padding: 5px;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <h1>벽돌 깨기 게임</h1>
-    <canvas id="gameCanvas" width="480" height="320"></canvas>
+    <h1>🧱 벽돌 깨기 게임 🧱 - <small>공을 튕겨 벽돌을 모두 없애세요!</small></h1>
+
+    <button onclick="startGame()">게임 시작</button>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="480" height="320"></canvas>
+        <div id="scoreBoard">
+            <h2>🏆 기록 남기기</h2>
+            <input type="text" id="playerName" placeholder="이름 입력">
+            <button onclick="saveScore()">기록 저장</button>
+            <h3>📜 점수 목록</h3>
+            <ul id="scoreList"></ul>
+        </div>
+    </div>
+
     <script src="game2.js"></script>
 </body>
 </html>
