@@ -3,23 +3,24 @@ const ctx = canvas.getContext("2d");
 
 // 게임 상태 변수
 let gameRunning = false;
+let score = 0;
+
+// 패들 설정
+const paddle = {
+    width: 75,
+    height: 10,
+    x: (canvas.width - 75) / 2,
+    speed: 7
+};
 
 // 공 설정
-let ball = {
+const ball = {
     x: canvas.width / 2,
     y: canvas.height - 30,
     dx: 3,
     dy: -3,
     radius: 10,
     color: "red"
-};
-
-// 패들 설정
-let paddle = {
-    width: 75,
-    height: 10,
-    x: (canvas.width - 75) / 2,
-    speed: 5
 };
 
 // 벽돌 설정
@@ -54,9 +55,20 @@ document.addEventListener("keyup", function (e) {
 
 // 게임 시작 함수
 function startGame() {
+    document.getElementById("startButton").disabled = true; // 버튼 비활성화
     gameRunning = true;
     resetGame();
     gameLoop();
+}
+
+// 패들 이동
+function movePaddle() {
+    if (rightPressed && paddle.x < canvas.width - paddle.width) {
+        paddle.x += paddle.speed;
+    }
+    if (leftPressed && paddle.x > 0) {
+        paddle.x -= paddle.speed;
+    }
 }
 
 // 벽돌 그리기
@@ -90,19 +102,29 @@ function drawPaddle() {
     ctx.fillRect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height);
 }
 
-// 게임 루프
-function gameLoop() {
-    if (!gameRunning) return;
+// 게임 화면을 그리는 함수
+function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBricks();
     drawBall();
     drawPaddle();
 
-    // 공 이동
+    // 점수 표시
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText(`점수: ${score}`, 10, 30);
+}
+
+// 게임 루프
+function gameLoop() {
+    if (!gameRunning) return;
+    
+    movePaddle();
+    
     ball.x += ball.dx;
     ball.y += ball.dy;
 
-    // 벽 충돌
+    // 벽 충돌 감지
     if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
         ball.dx *= -1;
     }
@@ -121,6 +143,7 @@ function gameLoop() {
         ball.dy *= -1;
     }
 
+    draw();
     requestAnimationFrame(gameLoop);
 }
 
@@ -128,6 +151,7 @@ function gameLoop() {
 function gameOver() {
     gameRunning = false;
     alert(`💥 게임 오버!`);
+    document.getElementById("startButton").disabled = false; // 게임 시작 버튼 다시 활성화
 }
 
 // 게임 초기화
@@ -147,7 +171,7 @@ function saveScore() {
         return;
     }
 
-    let newScore = { name: playerName, score: 0 };
+    let newScore = { name: playerName, score: score };
     let scores = JSON.parse(localStorage.getItem("brick_scores")) || [];
     scores.push(newScore);
     scores.sort((a, b) => b.score - a.score);
