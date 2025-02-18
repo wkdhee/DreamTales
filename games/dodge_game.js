@@ -1,6 +1,10 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// 게임 상태 변수
+let gameRunning = false;
+let score = 0;
+
 // 플레이어 설정
 const player = {
     x: 175,
@@ -16,22 +20,27 @@ const obstacles = [];
 const obstacleSpeed = 3;
 const obstacleWidth = 50;
 const obstacleHeight = 50;
-let score = 0;
-let gameRunning = true;  // 게임 실행 여부
 
 // 키보드 입력 처리
 let leftPressed = false;
 let rightPressed = false;
 
-document.addEventListener("keydown", function(e) {
+document.addEventListener("keydown", function (e) {
     if (e.key === "ArrowLeft") leftPressed = true;
     if (e.key === "ArrowRight") rightPressed = true;
 });
-
-document.addEventListener("keyup", function(e) {
+document.addEventListener("keyup", function (e) {
     if (e.key === "ArrowLeft") leftPressed = false;
     if (e.key === "ArrowRight") rightPressed = false;
 });
+
+// 게임 시작 함수
+function startGame() {
+    document.getElementById("startButton").disabled = true; // 게임 시작 버튼 비활성화
+    gameRunning = true;
+    resetGame();
+    gameLoop();
+}
 
 // 장애물 생성
 function createObstacle() {
@@ -74,19 +83,48 @@ function updateObstacles() {
     }
 }
 
-// 충돌 감지
-function checkCollision() {
+// 게임 화면을 그리는 함수
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 플레이어 그리기
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // 장애물 그리기
     for (let i = 0; i < obstacles.length; i++) {
-        let b = obstacles[i];
-        if (
-            player.x < b.x + b.width &&
-            player.x + player.width > b.x &&
-            player.y < b.y + b.height &&
-            player.y + player.height > b.y
-        ) {
-            gameOver();
-        }
+        ctx.fillStyle = obstacles[i].color;
+        ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
     }
+
+    // 점수 표시
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText(`점수: ${score}`, 10, 30);
+}
+
+// 게임 루프
+function gameLoop() {
+    if (gameRunning) {
+        movePlayer();
+        updateObstacles();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+}
+
+// 게임 오버
+function gameOver() {
+    gameRunning = false;
+    alert(`💥 게임 오버! 점수: ${score}`);
+    document.getElementById("startButton").disabled = false; // 게임 시작 버튼 다시 활성화
+}
+
+// 게임 초기화
+function resetGame() {
+    player.x = 175;  // 플레이어 위치 초기화
+    obstacles.length = 0;  // 장애물 초기화
+    score = 0;  // 점수 초기화
 }
 
 // 점수 저장 기능
@@ -98,10 +136,10 @@ function saveScore() {
     }
 
     let newScore = { name: playerName, score: score };
-    let scores = JSON.parse(localStorage.getItem("scores")) || [];
+    let scores = JSON.parse(localStorage.getItem("dodge_scores")) || [];
     scores.push(newScore);
-    scores.sort((a, b) => b.score - a.score); // 점수 순 정렬
-    localStorage.setItem("scores", JSON.stringify(scores));
+    scores.sort((a, b) => b.score - a.score);
+    localStorage.setItem("dodge_scores", JSON.stringify(scores));
 
     updateScoreBoard();
 }
@@ -110,7 +148,7 @@ function saveScore() {
 function updateScoreBoard() {
     let scoreList = document.getElementById("scoreList");
     scoreList.innerHTML = "";
-    let scores = JSON.parse(localStorage.getItem("scores")) || [];
+    let scores = JSON.parse(localStorage.getItem("dodge_scores")) || [];
 
     scores.forEach((entry) => {
         let li = document.createElement("li");
@@ -119,38 +157,6 @@ function updateScoreBoard() {
     });
 }
 
-// 게임 오버
-function gameOver() {
-    gameRunning = false;  // 게임 중지
-    alert(`💥 게임 오버! 당신의 점수: ${score}`);
-    
-    // 게임 오버 후 점수 자동 입력
-    document.getElementById("playerName").value = "";
-    resetGame();  // 게임 초기화
-}
+updateScoreBoard();
+setInterval(createObstacle, 2000);  // 2초마다 장애물 생성
 
-// 게임 초기화
-function resetGame() {
-    player.x = 175;  // 플레이어 위치 초기화
-    obstacles.length = 0;  // 장애물 초기화
-    score = 0;  // 점수 초기화
-    gameRunning = true;  // 게임 다시 시작
-}
-
-// 게임 루프
-function gameLoop() {
-    if (gameRunning) {
-        movePlayer();
-        updateObstacles();
-        checkCollision();
-        draw();
-    }
-    requestAnimationFrame(gameLoop);
-}
-
-// 2초마다 장애물 생성
-setInterval(createObstacle, 2000);
-
-// 게임 시작
-gameLoop();
-updateScoreBoard(); // 시작 시 기록된 점수 로드
