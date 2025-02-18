@@ -40,14 +40,20 @@ for (let c = 0; c < brickColumnCount; c++) {
     }
 }
 
-// 키보드 입력 처리
+// 키보드 입력 처리 (←, → 방향키만 작동하게 설정)
 let rightPressed = false;
 let leftPressed = false;
 
 document.addEventListener("keydown", function (e) {
     if (e.key === "ArrowRight") rightPressed = true;
     if (e.key === "ArrowLeft") leftPressed = true;
+
+    // 🛑 스페이스바 눌렀을 때 기본 동작 방지 (공이 빨라지는 문제 해결)
+    if (e.key === " ") {
+        e.preventDefault();
+    }
 });
+
 document.addEventListener("keyup", function (e) {
     if (e.key === "ArrowRight") rightPressed = false;
     if (e.key === "ArrowLeft") leftPressed = false;
@@ -118,7 +124,7 @@ function draw() {
 // 게임 루프
 function gameLoop() {
     if (!gameRunning) return;
-    
+
     movePaddle();
     
     ball.x += ball.dx;
