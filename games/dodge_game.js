@@ -17,6 +17,7 @@ const obstacleSpeed = 3;
 const obstacleWidth = 50;
 const obstacleHeight = 50;
 let score = 0;
+let gameRunning = true;  // 게임 실행 여부
 
 // 키보드 입력 처리
 let leftPressed = false;
@@ -34,8 +35,10 @@ document.addEventListener("keyup", function(e) {
 
 // 장애물 생성
 function createObstacle() {
-    let randomX = Math.floor(Math.random() * (canvas.width - obstacleWidth));
-    obstacles.push({ x: randomX, y: 0, width: obstacleWidth, height: obstacleHeight, color: "red" });
+    if (gameRunning) {
+        let randomX = Math.floor(Math.random() * (canvas.width - obstacleWidth));
+        obstacles.push({ x: randomX, y: 0, width: obstacleWidth, height: obstacleHeight, color: "red" });
+    }
 }
 
 // 플레이어 이동
@@ -53,15 +56,14 @@ function updateObstacles() {
     for (let i = 0; i < obstacles.length; i++) {
         obstacles[i].y += obstacleSpeed;
 
-        // 충돌 감지 (장애물이 플레이어와 닿으면 게임 오버)
+        // 충돌 감지
         if (
             player.x < obstacles[i].x + obstacles[i].width &&
             player.x + player.width > obstacles[i].x &&
             player.y < obstacles[i].y + obstacles[i].height &&
             player.y + player.height > obstacles[i].y
         ) {
-            alert(`💥 게임 오버! 점수: ${score}`);
-            document.location.reload();
+            gameOver();
         }
     }
 
@@ -72,31 +74,77 @@ function updateObstacles() {
     }
 }
 
-// 화면 그리기
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 플레이어 그리기
-    ctx.fillStyle = player.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    // 장애물 그리기
+// 충돌 감지
+function checkCollision() {
     for (let i = 0; i < obstacles.length; i++) {
-        ctx.fillStyle = obstacles[i].color;
-        ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
+        let b = obstacles[i];
+        if (
+            player.x < b.x + b.width &&
+            player.x + player.width > b.x &&
+            player.y < b.y + b.height &&
+            player.y + player.height > b.y
+        ) {
+            gameOver();
+        }
+    }
+}
+
+// 점수 저장 기능
+function saveScore() {
+    let playerName = document.getElementById("playerName").value;
+    if (playerName === "") {
+        alert("이름을 입력하세요!");
+        return;
     }
 
-    // 점수 표시
-    ctx.fillStyle = "black";
-    ctx.font = "20px Arial";
-    ctx.fillText(`점수: ${score}`, 10, 30);
+    let newScore = { name: playerName, score: score };
+    let scores = JSON.parse(localStorage.getItem("scores")) || [];
+    scores.push(newScore);
+    scores.sort((a, b) => b.score - a.score); // 점수 순 정렬
+    localStorage.setItem("scores", JSON.stringify(scores));
+
+    updateScoreBoard();
+}
+
+// 기록된 점수 리스트 업데이트
+function updateScoreBoard() {
+    let scoreList = document.getElementById("scoreList");
+    scoreList.innerHTML = "";
+    let scores = JSON.parse(localStorage.getItem("scores")) || [];
+
+    scores.forEach((entry) => {
+        let li = document.createElement("li");
+        li.textContent = `${entry.name}: ${entry.score}점`;
+        scoreList.appendChild(li);
+    });
+}
+
+// 게임 오버
+function gameOver() {
+    gameRunning = false;  // 게임 중지
+    alert(`💥 게임 오버! 당신의 점수: ${score}`);
+    
+    // 게임 오버 후 점수 자동 입력
+    document.getElementById("playerName").value = "";
+    resetGame();  // 게임 초기화
+}
+
+// 게임 초기화
+function resetGame() {
+    player.x = 175;  // 플레이어 위치 초기화
+    obstacles.length = 0;  // 장애물 초기화
+    score = 0;  // 점수 초기화
+    gameRunning = true;  // 게임 다시 시작
 }
 
 // 게임 루프
 function gameLoop() {
-    movePlayer();
-    updateObstacles();
-    draw();
+    if (gameRunning) {
+        movePlayer();
+        updateObstacles();
+        checkCollision();
+        draw();
+    }
     requestAnimationFrame(gameLoop);
 }
 
@@ -105,3 +153,4 @@ setInterval(createObstacle, 2000);
 
 // 게임 시작
 gameLoop();
+updateScoreBoard(); // 시작 시 기록된 점수 로드

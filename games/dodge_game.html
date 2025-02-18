@@ -5,17 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>피하는 게임</title>
     <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            margin: 10px;
+        }
+        #gameContainer {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+        }
         canvas {
             background: #f4f4f4;
-            display: block;
-            margin: auto;
             border: 2px solid black;
+        }
+        #scoreBoard {
+            width: 200px;
+            text-align: left;
+            padding: 10px;
+            border: 2px solid black;
+            background: #fff;
+        }
+        input, button {
+            width: 100%;
+            margin-top: 5px;
+            padding: 5px;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <h1 style="text-align:center;">⚡ 피하는 게임 ⚡</h1>
-    <canvas id="gameCanvas" width="400" height="500"></canvas>
+    <h1>⚡ 피하는 게임 ⚡ - <small>키보드로 움직여서 피하는 게임!</small></h1>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="400" height="500"></canvas>
+        <div id="scoreBoard">
+            <h2>🏆 기록 남기기</h2>
+            <input type="text" id="playerName" placeholder="이름 입력">
+            <button onclick="saveScore()">기록 저장</button>
+            <h3>📜 점수 목록</h3>
+            <ul id="scoreList"></ul>
+        </div>
+    </div>
+
     <script src="dodge_game.js"></script>
 </body>
 </html>
