@@ -1,10 +1,6 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-if (!canvas || !ctx) {
-    console.error("Canvas 또는 ctx를 찾을 수 없습니다!");
-}
-
 // 공 설정
 let ballRadius = 10;
 let x = canvas.width / 2;
@@ -36,7 +32,7 @@ for (let c = 0; c < brickColumnCount; c++) {
     }
 }
 
-// 키보드 이벤트 리스너
+// 키보드 이벤트 리스너 추가
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
@@ -134,7 +130,7 @@ function draw() {
     x += dx;
     y += dy;
 
-    // 패들 이동
+    // 패들 이동 (키보드 조작)
     if (rightPressed && paddleX < canvas.width - paddleWidth) {
         paddleX += 5;
     } else if (leftPressed && paddleX > 0) {
@@ -144,5 +140,5 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
-// 🔥 여기가 빠지면 안 됨! (게임 실행 시작)
+// 게임 시작!
 draw();
