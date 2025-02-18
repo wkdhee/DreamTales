@@ -4,6 +4,8 @@ const ctx = canvas.getContext("2d");
 // 게임 상태 변수
 let gameRunning = false;
 let score = 0;
+let obstacleSpeed = 3; // 장애물 속도 (기본값)
+let spawnRate = 1500; // 장애물 생성 속도(ms)
 
 // 플레이어 설정
 const player = {
@@ -12,14 +14,13 @@ const player = {
     width: 50,
     height: 50,
     color: "blue",
-    speed: 5
+    speed: 6 // 플레이어 속도 증가
 };
 
 // 장애물 설정
 const obstacles = [];
-const obstacleSpeed = 3;
-const obstacleWidth = 50;
-const obstacleHeight = 50;
+const obstacleWidthMin = 30; // 최소 크기
+const obstacleWidthMax = 80; // 최대 크기
 
 // 키보드 입력 처리
 let leftPressed = false;
@@ -29,6 +30,7 @@ document.addEventListener("keydown", function (e) {
     if (e.key === "ArrowLeft") leftPressed = true;
     if (e.key === "ArrowRight") rightPressed = true;
 });
+
 document.addEventListener("keyup", function (e) {
     if (e.key === "ArrowLeft") leftPressed = false;
     if (e.key === "ArrowRight") rightPressed = false;
@@ -36,17 +38,31 @@ document.addEventListener("keyup", function (e) {
 
 // 게임 시작 함수
 function startGame() {
-    document.getElementById("startButton").disabled = true; // 게임 시작 버튼 비활성화
+    document.getElementById("startButton").disabled = true;
     gameRunning = true;
-    resetGame();
+    score = 0;
+    obstacleSpeed = 3; // 속도 초기화
+    spawnRate = 1500; // 생성 속도 초기화
+    obstacles.length = 0;
     gameLoop();
 }
 
 // 장애물 생성
 function createObstacle() {
     if (gameRunning) {
-        let randomX = Math.floor(Math.random() * (canvas.width - obstacleWidth));
-        obstacles.push({ x: randomX, y: 0, width: obstacleWidth, height: obstacleHeight, color: "red" });
+        let width = Math.random() * (obstacleWidthMax - obstacleWidthMin) + obstacleWidthMin;
+        let randomX = Math.random() * (canvas.width - width);
+        obstacles.push({ x: randomX, y: 0, width: width, height: 30, color: "red" });
+        
+        // 🔥 난이도 증가: 시간이 지날수록 장애물 속도 증가 & 생성 빈도 높이기
+        if (score % 5 === 0 && spawnRate > 600) {
+            spawnRate -= 100; // 장애물 생성 속도 증가
+        }
+        if (score % 10 === 0) {
+            obstacleSpeed += 0.3; // 장애물 이동 속도 증가
+        }
+
+        setTimeout(createObstacle, spawnRate);
     }
 }
 
@@ -116,15 +132,8 @@ function gameLoop() {
 // 게임 오버
 function gameOver() {
     gameRunning = false;
-    alert(`💥 게임 오버! 점수: ${score}`);
-    document.getElementById("startButton").disabled = false; // 게임 시작 버튼 다시 활성화
-}
-
-// 게임 초기화
-function resetGame() {
-    player.x = 175;  // 플레이어 위치 초기화
-    obstacles.length = 0;  // 장애물 초기화
-    score = 0;  // 점수 초기화
+    alert(`💥 게임 오버! 당신의 점수: ${score}`);
+    document.getElementById("startButton").disabled = false;
 }
 
 // 점수 저장 기능
@@ -158,5 +167,4 @@ function updateScoreBoard() {
 }
 
 updateScoreBoard();
-setInterval(createObstacle, 2000);  // 2초마다 장애물 생성
-
+setTimeout(createObstacle, spawnRate); // 장애물 생성 주기 설정
